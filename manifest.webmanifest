@@ -1,0 +1,19 @@
+{
+  "name": "World Birthday Explorer",
+  "short_name": "World Birthdays",
+  "description": "Learn every country\u2019s national birthday and history.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f7ff",
+  "theme_color": "#172554",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
