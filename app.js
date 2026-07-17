@@ -1,1 +1,165 @@
-let countries=[],byName=new Map(),layers=new Map(),deferredPrompt;const $=s=>document.querySelector(s);const monthName=m=>new Date(2024,m-1,1).toLocaleString(undefined,{month:'long'});const map=L.map('map',{worldCopyJump:true,minZoom:1,maxZoom:6}).setView([18,15],2);L.control.zoom({position:'bottomright'}).addTo(map);function style(){return{color:'#fff',weight:1,fillColor:'#60a5fa',fillOpacity:.82}}function pick(name){const c=byName.get(name);if(!c)return;document.querySelectorAll('.leaflet-interactive').forEach(x=>x.classList.remove('selected'));const layer=layers.get(name);if(layer){layer.setStyle({fillColor:'#f59e0b',fillOpacity:1,weight:3});map.fitBounds(layer.getBounds(),{padding:[25,25],maxZoom:4})}const date=`${c.day} ${monthName(c.month)} ${c.year}`;$('#card').className='card';$('#card').innerHTML=`${c.flag?`<img class="flag" src="${c.flag}" alt="Flag of ${c.name}" onerror="this.style.display='none'">`:''}<h2>${c.name}</h2><span class="date-badge">🎂 ${date}</span><h3>${c.occasion}</h3><div class="facts"><div class="fact"><b>Capital</b>${c.capital}</div><div class="fact"><b>Region</b>${c.region}</div></div><p class="story">${c.history}</p><button onclick="speak('${c.name.replaceAll("'","\'")}')">🔊 Read it aloud</button>`;$('#search').value=c.name}window.speak=name=>{const c=byName.get(name);speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(`${c.name}. ${c.occasion} is on ${c.day} ${monthName(c.month)}. ${c.history}`))};function upcoming(){const now=new Date(),y=now.getFullYear();const arr=countries.map(c=>{let d=new Date(y,c.month-1,c.day);if(d<new Date(now.getFullYear(),now.getMonth(),now.getDate()))d=new Date(y+1,c.month-1,c.day);return{c,d,days:Math.ceil((d-now)/86400000)}}).sort((a,b)=>a.days-b.days).slice(0,5);$('#upcoming').innerHTML=arr.map(x=>`<div class="mini" onclick="pick('${x.c.name.replaceAll("'","\'")}')"><strong>${x.c.name}</strong>${x.c.day} ${monthName(x.c.month)}<div class="countdown">in ${x.days} day${x.days===1?'':'s'}</div></div>`).join('')}function quiz(){const answer=countries[Math.floor(Math.random()*countries.length)],others=countries.filter(x=>x!==answer).sort(()=>Math.random()-.5).slice(0,3),opts=[answer,...others].sort(()=>Math.random()-.5);$('#quizBody').innerHTML=`<h2>Which country celebrates on ${answer.day} ${monthName(answer.month)}?</h2><div class="answers">${opts.map(o=>`<button type="button" class="answer" data-name="${o.name}">${o.name}</button>`).join('')}</div><p id="result"></p>`;document.querySelectorAll('.answer').forEach(b=>b.onclick=()=>{document.querySelectorAll('.answer').forEach(x=>x.disabled=true);b.classList.add(b.dataset.name===answer.name?'correct':'wrong');$('#result').textContent=b.dataset.name===answer.name?'🎉 Correct! Great exploring!':`Good try! The answer is ${answer.name}.`;setTimeout(()=>pick(answer.name),700)});$('#quizDialog').showModal()}Promise.all([fetch('data/countries.json').then(r=>r.json()),fetch('data/world.geojson').then(r=>r.json())]).then(([cs,geo])=>{countries=cs.sort((a,b)=>a.name.localeCompare(b.name));countries.forEach(c=>byName.set(c.name,c));$('#countryList').innerHTML=countries.map(c=>`<option value="${c.name}">`).join('');L.geoJSON(geo,{style,onEachFeature:(f,l)=>{layers.set(f.properties.name,l);l.bindTooltip(f.properties.name,{sticky:true});l.on('click',()=>pick(f.properties.name));l.on('mouseover',()=>l.setStyle({fillOpacity:1}));l.on('mouseout',()=>{if($('#search').value!==f.properties.name)l.setStyle(style())})}}).addTo(map);upcoming();pick('Bangladesh')});$('#search').addEventListener('change',e=>pick(e.target.value));$('#search').addEventListener('input',e=>{const q=e.target.value.toLowerCase(),m=countries.find(c=>c.name.toLowerCase()===q);if(m)pick(m.name)});$('#surprise').onclick=()=>pick(countries[Math.floor(Math.random()*countries.length)].name);$('#quiz').onclick=quiz;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').hidden=false});$('#installBtn').onclick=async()=>{deferredPrompt?.prompt();deferredPrompt=null;$('#installBtn').hidden=true};if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js');
+let countries = [];
+let byName = new Map();
+let layers = new Map();
+let deferredPrompt;
+
+const $ = (selector) => document.querySelector(selector);
+const monthName = (month) => new Date(2024, month - 1, 1).toLocaleString(undefined, { month: 'long' });
+
+const map = L.map('map', { worldCopyJump: true, minZoom: 1, maxZoom: 6 }).setView([18, 15], 2);
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+function style() {
+	return { color: '#fff', weight: 1, fillColor: '#60a5fa', fillOpacity: 0.82 };
+}
+
+function pick(name) {
+	const country = byName.get(name);
+	if (!country) return;
+
+	document.querySelectorAll('.leaflet-interactive').forEach((node) => node.classList.remove('selected'));
+
+	const layer = layers.get(name);
+	if (layer) {
+		layer.setStyle({ fillColor: '#f59e0b', fillOpacity: 1, weight: 3 });
+		map.fitBounds(layer.getBounds(), { padding: [25, 25], maxZoom: 4 });
+	}
+
+	const date = `${country.day} ${monthName(country.month)} ${country.year}`;
+	$('#card').className = 'card';
+	$('#card').innerHTML = `${country.flag ? `<img class="flag" src="${country.flag}" alt="Flag of ${country.name}" onerror="this.style.display='none'">` : ''}<h2>${country.name}</h2><span class="date-badge">🎂 ${date}</span><h3>${country.occasion}</h3><div class="facts"><div class="fact"><b>Capital</b>${country.capital}</div><div class="fact"><b>Region</b>${country.region}</div></div><p class="story">${country.history}</p><button onclick="speak('${country.name.replaceAll("'", "\\'")}')">🔊 Read it aloud</button>`;
+	$('#search').value = country.name;
+}
+
+window.speak = (name) => {
+	const country = byName.get(name);
+	if (!country) return;
+	speechSynthesis.cancel();
+	speechSynthesis.speak(new SpeechSynthesisUtterance(`${country.name}. ${country.occasion} is on ${country.day} ${monthName(country.month)}. ${country.history}`));
+};
+
+function upcoming() {
+	const now = new Date();
+	const year = now.getFullYear();
+	const today = new Date(year, now.getMonth(), now.getDate());
+
+	const items = countries
+		.map((country) => {
+			let celebration = new Date(year, country.month - 1, country.day);
+			if (celebration < today) celebration = new Date(year + 1, country.month - 1, country.day);
+			return {
+				country,
+				days: Math.ceil((celebration - now) / 86400000)
+			};
+		})
+		.sort((a, b) => a.days - b.days)
+		.slice(0, 5);
+
+	$('#upcoming').innerHTML = items
+		.map((item) => `<div class="mini" onclick="pick('${item.country.name.replaceAll("'", "\\'")}')"><strong>${item.country.name}</strong>${item.country.day} ${monthName(item.country.month)}<div class="countdown">in ${item.days} day${item.days === 1 ? '' : 's'}</div></div>`)
+		.join('');
+}
+
+function quiz() {
+	const answer = countries[Math.floor(Math.random() * countries.length)];
+	const others = countries
+		.filter((country) => country !== answer)
+		.sort(() => Math.random() - 0.5)
+		.slice(0, 3);
+	const options = [answer, ...others].sort(() => Math.random() - 0.5);
+
+	$('#quizBody').innerHTML = `<h2>Which country celebrates on ${answer.day} ${monthName(answer.month)}?</h2><div class="answers">${options.map((option) => `<button type="button" class="answer" data-name="${option.name}">${option.name}</button>`).join('')}</div><p id="result"></p>`;
+
+	document.querySelectorAll('.answer').forEach((button) => {
+		button.onclick = () => {
+			document.querySelectorAll('.answer').forEach((node) => {
+				node.disabled = true;
+			});
+
+			const isCorrect = button.dataset.name === answer.name;
+			button.classList.add(isCorrect ? 'correct' : 'wrong');
+			$('#result').textContent = isCorrect ? '🎉 Correct! Great exploring!' : `Good try! The answer is ${answer.name}.`;
+			setTimeout(() => pick(answer.name), 700);
+		};
+	});
+
+	$('#quizDialog').showModal();
+}
+
+function setupInstallPrompt() {
+	const installButton = $('#installBtn');
+	const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+	const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+	window.addEventListener('beforeinstallprompt', (event) => {
+		event.preventDefault();
+		deferredPrompt = event;
+		installButton.textContent = 'Install app';
+		installButton.hidden = false;
+	});
+
+	window.addEventListener('appinstalled', () => {
+		deferredPrompt = null;
+		installButton.hidden = true;
+	});
+
+	if (isIOS && !isStandalone) {
+		installButton.textContent = 'How to install';
+		installButton.hidden = false;
+	}
+
+	installButton.onclick = async () => {
+		if (deferredPrompt) {
+			deferredPrompt.prompt();
+			deferredPrompt = null;
+			installButton.hidden = true;
+			return;
+		}
+
+		if (isIOS && !isStandalone) {
+			window.alert('On iPhone/iPad Safari: tap Share, then choose Add to Home Screen.');
+		}
+	};
+}
+
+Promise.all([fetch('data/countries.json').then((response) => response.json()), fetch('data/world.geojson').then((response) => response.json())]).then(([countryList, geo]) => {
+	countries = countryList.sort((a, b) => a.name.localeCompare(b.name));
+	countries.forEach((country) => byName.set(country.name, country));
+	$('#countryList').innerHTML = countries.map((country) => `<option value="${country.name}">`).join('');
+
+	L.geoJSON(geo, {
+		style,
+		onEachFeature: (feature, layer) => {
+			layers.set(feature.properties.name, layer);
+			layer.bindTooltip(feature.properties.name, { sticky: true });
+			layer.on('click', () => pick(feature.properties.name));
+			layer.on('mouseover', () => layer.setStyle({ fillOpacity: 1 }));
+			layer.on('mouseout', () => {
+				if ($('#search').value !== feature.properties.name) {
+					layer.setStyle(style());
+				}
+			});
+		}
+	}).addTo(map);
+
+	upcoming();
+	pick('Bangladesh');
+});
+
+$('#search').addEventListener('change', (event) => pick(event.target.value));
+$('#search').addEventListener('input', (event) => {
+	const query = event.target.value.toLowerCase();
+	const match = countries.find((country) => country.name.toLowerCase() === query);
+	if (match) pick(match.name);
+});
+
+$('#surprise').onclick = () => pick(countries[Math.floor(Math.random() * countries.length)].name);
+$('#quiz').onclick = quiz;
+
+setupInstallPrompt();
+
+if ('serviceWorker' in navigator) {
+	navigator.serviceWorker.register('./sw.js').catch(() => {
+		// Keep the app functional even when registration fails.
+	});
+}

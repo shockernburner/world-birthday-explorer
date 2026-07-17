@@ -2,18 +2,40 @@
   "name": "World Birthday Explorer",
   "short_name": "World Birthdays",
   "description": "Learn every country\u2019s national birthday and history.",
+  "id": "/",
   "start_url": "./",
   "scope": "./",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "display": "standalone",
   "background_color": "#f3f7ff",
   "theme_color": "#172554",
   "orientation": "any",
+  "lang": "en",
   "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
     {
       "src": "icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "categories": ["education", "kids", "travel"]
 }
