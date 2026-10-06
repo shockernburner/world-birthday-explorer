@@ -1,4 +1,4 @@
-const CACHE = 'world-birthday-v2';
+const CACHE = 'world-birthday-v3';
 const CORE = [
 	'./',
 	'./index.html',
