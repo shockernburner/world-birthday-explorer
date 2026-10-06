@@ -30,9 +30,10 @@ that polygon coordinates are valid, and that Myanmar and French Guiana are place
 The map matches `data/world.geojson` feature names to the names in
 `data/countries.json`. All 195 country lessons have map geometry, including
 small island nations and microstates. French Guiana is part of France's
-map geometry and opens the existing France lesson.
+map geometry and opens the existing France lesson. Territories without a
+lesson (such as Greenland, Western Sahara and Taiwan) are also drawn so the
+map has no blank land.
 
-The 35 previously missing country geometries and the French Guiana polygon
-come from [datasets/geo-countries](https://github.com/datasets/geo-countries/tree/185beb1137f6e9f5d916c91916f0159c20fbab30),
-which distributes public-domain Natural Earth boundaries. Source names are
-mapped to the existing lesson names; the other map boundaries are retained.
+Boundaries come from [Natural Earth](https://www.naturalearthdata.com/)
+1:50m admin-0 countries (public domain), simplified and with source names
+mapped to the existing lesson names. Antarctica is omitted.

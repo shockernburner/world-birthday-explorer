@@ -42,7 +42,12 @@ class MapCoverageTests(unittest.TestCase):
         names = [country['name'] for country in self.countries]
         self.assertEqual(len(names), len(set(names)))
         self.assertEqual(len(self.features), len(self.by_name))
-        self.assertEqual(set(names), set(self.by_name))
+        self.assertLessEqual(set(names), set(self.by_name))
+
+    def test_territories_without_lessons_are_drawn(self):
+        for name, lon, lat in [('Greenland', -40, 72), ('Western Sahara', -13, 24), ('Taiwan', 121, 24)]:
+            with self.subTest(territory=name):
+                self.assertTrue(contains(self.by_name[name], lon, lat))
 
     def test_every_country_has_valid_polygon_coordinates(self):
         for name, feature in self.by_name.items():
